@@ -83,7 +83,7 @@ BeanBuilder的类型转换采用如何策略，这里，`F`是源类型(值为`f
 - dapeng 2.0 即将全新发布，新版本将是对1.0版本的完全重构，对简化代码结构的情况下，提供了全新的异步支持、Scala服务开发支持。
 我们的主力工程师 @EmuuGrass(美女)、@jackliang 后续会准备不少的技术分享。
 - dapeng 2.0 将内置一个**极速json解析器**，dapeng-soa将在支持thrift binary/compact binary的基础之上，提供**极速**的JSON服务。
-等待@ever大神的新博文分析。
+等待@ever大神的新博文分享。
 
 
 
