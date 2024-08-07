@@ -173,3 +173,10 @@ end user.main;
 
 ```
 整理后的处理如图：<img width="1362" alt="image" src="https://github.com/user-attachments/assets/fcc66d79-a46b-4955-ae9f-1d750c3bd46a">
+
+# group by 案例
+# 窗口函数案例
+# join 案例
+
+# 使用一个 IL 来执行 SQL 有什么优点？
+
