@@ -175,8 +175,72 @@ end user.main;
 整理后的处理如图：<img width="1362" alt="image" src="https://github.com/user-attachments/assets/fcc66d79-a46b-4955-ae9f-1d750c3bd46a">
 
 # group by 案例
+```
+sql> explain explain select chamber, sum(trip) from invoices group by chamber;
+
+function user.main():void;
+    X_1:void := querylog.define("explain select chamber, sum(trip) from invoices group by chamber;":str,
+    			"default_pipe":str, 21:int);
+barrier X_91:bit := language.dataflow();
+    X_4:int := sql.mvc();
+
+    C_5:bat[:oid] := sql.tid(X_4:int, "sys":str, "invoices":str);
+
+    trip_0:bat[:int] := sql.bind(X_4:int, "sys":str, "invoices":str, "trip":str, 0:int);
+    chamber_0:bat[:str] := sql.bind(X_4:int, "sys":str, "invoices":str, "chamber":str, 0:int);
+
+    trip_1:bat[:int] := algebra.projection(C_5:bat[:oid], trip_0:bat[:int]);
+    chamber_1:bat[:str] := algebra.projection(C_5:bat[:oid], chamber_0:bat[:str]);
+
+    X_93:void := language.pass(C_5:bat[:oid]);
+
+	// 这个函数文档没有找到，返回的两个 BAT 暂时语义不确定，猜测： X_22: [1..N, gid], X_23: [1,n, oid]
+	// 其中 N 是行数， n 是分组数。
+    (X_22:bat[:oid], C_23:bat[:oid]) := group.groupdone(chamber_1:bat[:str]);
+
+    //// grouped [chamber]
+    chamber_2:bat[:str] := algebra.projection(C_23:bat[:oid], chamber_1:bat[:str]);
+
+    X_94:void := language.pass(chamber_1:bat[:str]);
+
+    //// [ sum(trip) for each group ]  subsum(bid, gid, eid, skip_nils) 这个函数在官网搜不到
+    trip_sum:bat[:hge] := aggr.subsum(trip_1:bat[:int], X_22:bat[:oid], C_23:bat[:oid], true:bit);
+
+    X_95:void := language.pass(C_23:bat[:oid]);
+
+    X_29:bat[:str] := bat.pack("sys.invoices":str, "sys.%1":str);
+    X_30:bat[:str] := bat.pack("chamber":str, "%1":str);
+    X_31:bat[:str] := bat.pack("char":str, "hugeint":str);
+    X_32:bat[:int] := bat.pack(1:int, 128:int);
+    X_33:bat[:int] := bat.pack(0:int, 0:int);
+exit X_91:bit;
+    X_28:int := sql.;(X_29:bat[:str], X_30:bat[:str], X_31:bat[:str], X_32:bat[:int], X_33:bat[:int],
+    	chamber_2:bat[:str], trip_sum:bat[:hge]);
+end user.main;
+```
 # 窗口函数案例
+TODO
+
 # join 案例
+TODO
 
 # 使用一个 IL 来执行 SQL 有什么优点？
+Sqlite3 使用字节码，MonetDB 使用 MAL，二者是相似的，而大部份其他的数据库是基于AST的，通过将 SQL 解析成为 AST，再转换成为 Logic Plan 和 Physical Plan (也是 AST)。
+在 [为什么SQLite使用 Bytecode](https://sqlite.org/whybytecode.html) 文中提到了
+使用字节码的优点和缺点：
+Pros:
+  - 字节码易于理解。而 AST 相对难以展示为可读性好的表现形式。（实际上，现在很多数据库都可以以 Tree 方式来查看 Plan，这方面的差距其实不大）
+  - 字节码易于调试。可以像普通的代码调试一样的进行字节码的调试。
+  - 字节码可以增量式的运行。
+  - 字节码更加短小。
+  - 字节码更加快速。字节码相对于AST来说具有更小的解释成本
+Cons:
+  - AST 更便于在执行期后期的计划变更。尤其是根据实际数据的特征，而改变执行计划，例如调整 Join 策略等。
+  - 基于数据流的处理更易于并行化。
 
+我觉得还有一个点，是字节码模式更擅长的，可以更好的进行自下而上的性能优化，例如我们可以针对某个特定的优化场景，设计更适合的算法，基于字节码的场景，我们可以略过前面的 AST 构建过程，
+直接手写出目标的字节码，然后独立的进行调试，进行性能压测。在达到预期目标后，调整前端的 AST 构建过程即可。
+
+1. 在此之外，我们可以引入一个函数式的 IL，采用类似于 S-Expression 的方式，这样 AST 与 S-IL之间的距离也相对较小，可以更方便引入新的底层函数。
+2. 基于 S-IL 的模式，还可以引入 Hot-Swap 的技术，即在运行期可以动态的修改部分的函数调用，这就可以解决上面的后期优化的问题。（有些类似于 JVM 的 JIT 替换的模式）
+3. 从学习的角度来看，将 IL 的执行与 AST 的生成进行隔离，也比较便于对 Plan 和 Executor 两个关键组件的解耦，可读性、可扩展性都会更好一些。
