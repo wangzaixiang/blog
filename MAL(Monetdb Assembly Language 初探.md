@@ -22,6 +22,10 @@ $ wget https://dev.monetdb.org/Assets/VOC/voc_dump.zip -- 获取到示例数据�
 $ unzip -p voc_dump.zip voc_dump.sql | mclient -u voc -d voc  -- 执行脚本，初始化示例数据库
 ```
 
+# 参考资料
+[Flattening an object algebra to provide performance
+](https://www.researchgate.net/publication/3735086_Flattening_an_object_algebra_to_provide_performance)
+
 # 简单案例
 我们先来阅读一条最简单的 SQL 语句的 MAL。
 ```bash
