@@ -23,7 +23,7 @@ $ unzip -p voc_dump.zip voc_dump.sql | mclient -u voc -d voc  -- 执行脚本，
 ```
 
 # 参考资料
-[Flattening an object algebra to provide performance
+- BAT 相关论文 [Flattening an object algebra to provide performance
 ](https://www.researchgate.net/publication/3735086_Flattening_an_object_algebra_to_provide_performance)
 
 # 简单案例
